@@ -18,7 +18,7 @@ export default function Home() {
   const [dataCatatan, setDataCatatan] = useState<Catatan[]>([]);
   const [filterMulai, setFilterMulai] = useState('');
   const [filterSampai, setFilterSampai] = useState('');
-  const [combinedText, setCombinedText] = useState(''); // hasil gabungan
+  const [combinedText, setCombinedText] = useState('');
   const [ringkasan, setRingkasan] = useState('');
   const [ringkasanLoading, setRingkasanLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function Home() {
 
   const fetchData = async () => {
     setFetchLoading(true);
-    setCombinedText(''); // reset gabungan saat filter berubah
+    setCombinedText('');
     try {
       const params = new URLSearchParams();
       if (filterMulai) params.append('mulai', filterMulai);
@@ -51,7 +51,6 @@ export default function Home() {
     }
   };
 
-  // Gabungkan semua pesan yang tampil menjadi satu teks
   const handleCombine = () => {
     if (dataCatatan.length === 0) {
       alert('Tidak ada data untuk digabungkan');
@@ -103,7 +102,6 @@ export default function Home() {
     }
   };
 
-  // Kirim teks gabungan ke API
   const handleRingkasan = async () => {
     if (!combinedText) {
       alert('Gabungkan data terlebih dahulu sebelum membuat ringkasan.');
@@ -112,7 +110,6 @@ export default function Home() {
     setRingkasanLoading(true);
     setRingkasan('');
 
-    // Cache key berdasarkan teks (hash sederhana)
     const cacheKey = `summary_${btoa(combinedText).slice(0, 50)}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
@@ -227,27 +224,13 @@ export default function Home() {
           <h2 style={{ color: '#2e7d32', marginTop: 0 }}>Tambah Catatan Baru</h2>
           <form onSubmit={handleSimpan}>
             <div style={{ marginBottom: '1.5rem' }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontWeight: 600,
-                  marginBottom: '0.5rem',
-                  color: '#1a1a1a',
-                }}
-              >
+              <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', color: '#1a1a1a' }}>
                 Tanggal
               </label>
               <input type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} required style={inputStyle} />
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontWeight: 600,
-                  marginBottom: '0.5rem',
-                  color: '#1a1a1a',
-                }}
-              >
+              <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', color: '#1a1a1a' }}>
                 Materi / Pesan
               </label>
               <textarea
@@ -286,37 +269,107 @@ export default function Home() {
 
       {mode === 'ringkas' && (
         <div>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div>
-              <label style={{ fontWeight: 600, marginRight: 4 }}>Dari:</label>
-              <input
-                type="date"
-                value={filterMulai}
-                onChange={(e) => setFilterMulai(e.target.value)}
-                style={{ padding: '0.4rem', border: '1px solid #ccc', borderRadius: 4 }}
-              />
+          {/* STICKY CONTAINER: filter + tombol aksi + teks gabungan */}
+          <div
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 10,
+              background: '#fafafa', // warna latar halaman
+              paddingBottom: '1rem',
+              borderBottom: '1px solid #ddd',
+              marginBottom: '1rem',
+            }}
+          >
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div>
+                <label style={{ fontWeight: 600, marginRight: 4 }}>Dari:</label>
+                <input
+                  type="date"
+                  value={filterMulai}
+                  onChange={(e) => setFilterMulai(e.target.value)}
+                  style={{ padding: '0.4rem', border: '1px solid #ccc', borderRadius: 4 }}
+                />
+              </div>
+              <div>
+                <label style={{ fontWeight: 600, marginRight: 4 }}>Sampai:</label>
+                <input
+                  type="date"
+                  value={filterSampai}
+                  onChange={(e) => setFilterSampai(e.target.value)}
+                  style={{ padding: '0.4rem', border: '1px solid #ccc', borderRadius: 4 }}
+                />
+              </div>
+              <button
+                onClick={fetchData}
+                style={{
+                  padding: '0.4rem 1rem',
+                  background: '#e0e0e0',
+                  border: 'none',
+                  borderRadius: 4,
+                  fontWeight: 600,
+                }}
+              >
+                🔄 Terapkan
+              </button>
             </div>
-            <div>
-              <label style={{ fontWeight: 600, marginRight: 4 }}>Sampai:</label>
-              <input
-                type="date"
-                value={filterSampai}
-                onChange={(e) => setFilterSampai(e.target.value)}
-                style={{ padding: '0.4rem', border: '1px solid #ccc', borderRadius: 4 }}
-              />
-            </div>
-            <button
-              onClick={fetchData}
-              style={{
-                padding: '0.4rem 1rem',
-                background: '#e0e0e0',
-                border: 'none',
-                borderRadius: 4,
-                fontWeight: 600,
-              }}
-            >
-              🔄 Terapkan
-            </button>
+
+            {dataCatatan.length > 0 && (
+              <button
+                onClick={handleCombine}
+                style={{
+                  padding: '0.8rem 2rem',
+                  background: '#1565c0',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontWeight: 'bold',
+                  fontSize: 16,
+                  cursor: 'pointer',
+                  marginRight: '1rem',
+                }}
+              >
+                🧩 Gabungkan Semua Pesan
+              </button>
+            )}
+
+            {combinedText && (
+              <button
+                onClick={handleRingkasan}
+                disabled={ringkasanLoading}
+                style={{
+                  padding: '0.8rem 2rem',
+                  background: ringkasanLoading ? '#a5d6a7' : '#2e7d32',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontWeight: 'bold',
+                  fontSize: 16,
+                  cursor: ringkasanLoading ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {ringkasanLoading ? 'Menyusun...' : '✨ Buat Ringkasan'}
+              </button>
+            )}
+
+            {combinedText && (
+              <div
+                style={{
+                  background: '#e3f2fd',
+                  padding: '0.8rem',
+                  borderRadius: 8,
+                  marginTop: '0.5rem',
+                  maxHeight: '80px',
+                  overflowY: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  color: '#0d47a1',
+                  fontSize: 14,
+                  border: '1px solid #90caf9',
+                }}
+              >
+                {combinedText}
+              </div>
+            )}
           </div>
 
           {fetchLoading ? (
@@ -340,103 +393,47 @@ export default function Home() {
                   📥 Ekspor TXT
                 </button>
               </div>
-              <ul style={{ listStyle: 'none', padding: 0 }}>
-                {dataCatatan.map((item) => (
-                  <li
-                    key={item._id}
-                    style={{
-                      background: 'white',
-                      marginBottom: '0.5rem',
-                      padding: '0.8rem',
-                      borderRadius: 8,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      border: '1px solid #eee',
-                      color: '#1a1a1a',
-                    }}
-                  >
-                    <div>
-                      <strong style={{ color: '#2e7d32' }}>
-                        {new Date(item.Tanggal).toLocaleDateString('id-ID')}
-                      </strong>
-                      : {item.Pesan}
-                    </div>
-                    <button
-                      onClick={() => handleHapus(item._id)}
+              {/* DAFTAR CATATAN DENGAN SCROLL AREA */}
+              <div style={{ maxHeight: '55vh', overflowY: 'auto', marginBottom: '1rem', border: '1px solid #eee', borderRadius: 8 }}>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {dataCatatan.map((item) => (
+                    <li
+                      key={item._id}
                       style={{
-                        color: '#c62828',
-                        cursor: 'pointer',
-                        background: 'none',
-                        border: 'none',
-                        fontSize: '1.2rem',
+                        background: 'white',
+                        padding: '0.8rem',
+                        borderBottom: '1px solid #f0f0f0',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        color: '#1a1a1a',
                       }}
-                      title="Hapus catatan"
                     >
-                      🗑️
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                      <div>
+                        <strong style={{ color: '#2e7d32' }}>
+                          {new Date(item.Tanggal).toLocaleDateString('id-ID')}
+                        </strong>
+                        : {item.Pesan}
+                      </div>
+                      <button
+                        onClick={() => handleHapus(item._id)}
+                        style={{
+                          color: '#c62828',
+                          cursor: 'pointer',
+                          background: 'none',
+                          border: 'none',
+                          fontSize: '1.2rem',
+                        }}
+                        title="Hapus catatan"
+                      >
+                        🗑️
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
               {deleteMessage && (
                 <p style={{ color: deleteMessage.startsWith('✅') ? '#2e7d32' : 'red' }}>{deleteMessage}</p>
               )}
-
-              {/* Tombol Gabungkan */}
-              <button
-                onClick={handleCombine}
-                style={{
-                  padding: '0.8rem 2rem',
-                  background: '#1565c0',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 8,
-                  fontWeight: 'bold',
-                  fontSize: 16,
-                  marginTop: '1rem',
-                  cursor: 'pointer',
-                }}
-              >
-                🧩 Gabungkan Semua Pesan
-              </button>
-
-              {/* Tampilkan hasil gabungan */}
-              {combinedText && (
-                <div
-                  style={{
-                    background: '#e3f2fd',
-                    padding: '1rem',
-                    borderRadius: 8,
-                    marginTop: '1rem',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                    whiteSpace: 'pre-wrap',
-                    color: '#0d47a1',
-                    fontSize: 14,
-                    border: '1px solid #90caf9',
-                  }}
-                >
-                  {combinedText}
-                </div>
-              )}
-
-              {/* Tombol Ringkasan (menggunakan teks gabungan) */}
-              <button
-                onClick={handleRingkasan}
-                disabled={ringkasanLoading || !combinedText}
-                style={{
-                  padding: '0.8rem 2rem',
-                  background: ringkasanLoading || !combinedText ? '#a5d6a7' : '#2e7d32',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 8,
-                  fontWeight: 'bold',
-                  fontSize: 16,
-                  marginTop: '1rem',
-                  cursor: ringkasanLoading || !combinedText ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {ringkasanLoading ? 'Menyusun ringkasan...' : '✨ Buat Ringkasan dari Gabungan'}
-              </button>
 
               {ringkasan && (
                 <div
@@ -444,7 +441,7 @@ export default function Home() {
                     background: '#f1f8e9',
                     padding: '1.2rem',
                     borderRadius: 10,
-                    marginTop: '1.5rem',
+                    marginTop: '1rem',
                     whiteSpace: 'pre-wrap',
                     color: '#1a1a1a',
                     lineHeight: 1.6,
