@@ -1,0 +1,23 @@
+/* app/globals.css */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fafafa;
+  color: #111;
+}
+
+/* Pastikan semua input dan textarea punya warna teks hitam */
+input, textarea, select {
+  color: #111;
+  font-size: 16px;
+}
+
+::placeholder {
+  color: #2c5e2c;
+  opacity: 0.8;
+}
+
+/* Style tambahan untuk tombol global */
+button {
+  cursor: pointer;
+}
