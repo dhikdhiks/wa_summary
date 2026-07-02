@@ -23,6 +23,7 @@ export default function Home() {
   const [ringkasanLoading, setRingkasanLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState('');
+  const [copyMessage, setCopyMessage] = useState(''); // untuk notifikasi copy
 
   useEffect(() => {
     if (mode === 'ringkas') {
@@ -63,6 +64,25 @@ export default function Home() {
       })
       .join('\n\n');
     setCombinedText(combined);
+  };
+
+  // Fungsi copy ke clipboard
+  const handleCopy = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyMessage(`✅ ${label} disalin ke clipboard`);
+      setTimeout(() => setCopyMessage(''), 2000);
+    } catch (err) {
+      // Fallback untuk browser lama
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopyMessage(`✅ ${label} disalin (fallback)`);
+      setTimeout(() => setCopyMessage(''), 2000);
+    }
   };
 
   const handleSimpan = async (e: FormEvent) => {
@@ -269,13 +289,13 @@ export default function Home() {
 
       {mode === 'ringkas' && (
         <div>
-          {/* STICKY CONTAINER: filter + tombol aksi + teks gabungan */}
+          {/* STICKY CONTAINER */}
           <div
             style={{
               position: 'sticky',
               top: 0,
               zIndex: 10,
-              background: '#fafafa', // warna latar halaman
+              background: '#fafafa',
               paddingBottom: '1rem',
               borderBottom: '1px solid #ddd',
               marginBottom: '1rem',
@@ -334,43 +354,83 @@ export default function Home() {
             )}
 
             {combinedText && (
-              <button
-                onClick={handleRingkasan}
-                disabled={ringkasanLoading}
-                style={{
-                  padding: '0.8rem 2rem',
-                  background: ringkasanLoading ? '#a5d6a7' : '#2e7d32',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: 8,
-                  fontWeight: 'bold',
-                  fontSize: 16,
-                  cursor: ringkasanLoading ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {ringkasanLoading ? 'Menyusun...' : '✨ Buat Ringkasan'}
-              </button>
-            )}
-
-            {combinedText && (
-              <div
-                style={{
-                  background: '#e3f2fd',
-                  padding: '0.8rem',
-                  borderRadius: 8,
-                  marginTop: '0.5rem',
-                  maxHeight: '80px',
-                  overflowY: 'auto',
-                  whiteSpace: 'pre-wrap',
-                  color: '#0d47a1',
-                  fontSize: 14,
-                  border: '1px solid #90caf9',
-                }}
-              >
-                {combinedText}
-              </div>
+              <>
+                <button
+                  onClick={handleRingkasan}
+                  disabled={ringkasanLoading}
+                  style={{
+                    padding: '0.8rem 2rem',
+                    background: ringkasanLoading ? '#a5d6a7' : '#2e7d32',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontWeight: 'bold',
+                    fontSize: 16,
+                    cursor: ringkasanLoading ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {ringkasanLoading ? 'Menyusun...' : '✨ Buat Ringkasan'}
+                </button>
+                <div style={{ position: 'relative', marginTop: '0.5rem' }}>
+                  <div
+                    style={{
+                      background: '#e3f2fd',
+                      padding: '0.8rem',
+                      borderRadius: 8,
+                      maxHeight: '80px',
+                      overflowY: 'auto',
+                      whiteSpace: 'pre-wrap',
+                      color: '#0d47a1',
+                      fontSize: 14,
+                      border: '1px solid #90caf9',
+                      paddingRight: '40px', // ruang untuk tombol copy
+                    }}
+                  >
+                    {combinedText}
+                  </div>
+                  <button
+                    onClick={() => handleCopy(combinedText, 'Gabungan')}
+                    style={{
+                      position: 'absolute',
+                      top: '8px',
+                      right: '8px',
+                      background: '#1565c0',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 4,
+                      padding: '0.2rem 0.5rem',
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
+                    title="Salin gabungan"
+                  >
+                    📋 Salin
+                  </button>
+                </div>
+              </>
             )}
           </div>
+
+          {copyMessage && (
+            <div
+              style={{
+                position: 'fixed',
+                bottom: '20px',
+                right: '20px',
+                background: '#333',
+                color: 'white',
+                padding: '0.5rem 1rem',
+                borderRadius: 8,
+                fontSize: 14,
+                zIndex: 100,
+              }}
+            >
+              {copyMessage}
+            </div>
+          )}
 
           {fetchLoading ? (
             <p>Memuat data...</p>
@@ -393,7 +453,6 @@ export default function Home() {
                   📥 Ekspor TXT
                 </button>
               </div>
-              {/* DAFTAR CATATAN DENGAN SCROLL AREA */}
               <div style={{ maxHeight: '55vh', overflowY: 'auto', marginBottom: '1rem', border: '1px solid #eee', borderRadius: 8 }}>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   {dataCatatan.map((item) => (
@@ -436,19 +495,42 @@ export default function Home() {
               )}
 
               {ringkasan && (
-                <div
-                  style={{
-                    background: '#f1f8e9',
-                    padding: '1.2rem',
-                    borderRadius: 10,
-                    marginTop: '1rem',
-                    whiteSpace: 'pre-wrap',
-                    color: '#1a1a1a',
-                    lineHeight: 1.6,
-                    border: '1px solid #c8e6c9',
-                  }}
-                >
-                  {ringkasan}
+                <div style={{ position: 'relative', marginTop: '1rem' }}>
+                  <div
+                    style={{
+                      background: '#f1f8e9',
+                      padding: '1.2rem',
+                      borderRadius: 10,
+                      whiteSpace: 'pre-wrap',
+                      color: '#1a1a1a',
+                      lineHeight: 1.6,
+                      border: '1px solid #c8e6c9',
+                      paddingRight: '50px',
+                    }}
+                  >
+                    {ringkasan}
+                  </div>
+                  <button
+                    onClick={() => handleCopy(ringkasan, 'Ringkasan')}
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      background: '#2e7d32',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 4,
+                      padding: '0.25rem 0.6rem',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
+                    title="Salin ringkasan"
+                  >
+                    📋 Salin
+                  </button>
                 </div>
               )}
             </>
